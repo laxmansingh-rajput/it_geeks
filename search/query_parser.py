@@ -37,6 +37,40 @@ class ParsedQuery(BaseModel):
     clarification_prompt: Optional[str] = None
 
 
+COMMON_NAME_MAP = {
+    "rahul": "Rohan",
+    "rohit": "Rohan",
+    "ronit": "Rohan",
+    "kiran": "Karan",
+    "karun": "Karan",
+    "neeha": "Neha",
+    "sneha": "Neha",
+    "vikky": "Vikram",
+    "vicky": "Vikram",
+    "vikki": "Vikram",
+    "diya": "Divya",
+    "deepa": "Divya",
+    "preeya": "Priya",
+    "amith": "Amit",
+    "sarah": "Sara"
+}
+
+
+def match_participant(name_token: str) -> Optional[str]:
+    """Match participant with exact check, aliases, and fuzzy correction."""
+    import difflib
+    clean = name_token.strip().lower()
+    for p in PARTICIPANTS:
+        if p.lower() == clean:
+            return p
+    if clean in COMMON_NAME_MAP:
+        return COMMON_NAME_MAP[clean]
+    matches = difflib.get_close_matches(name_token.capitalize(), PARTICIPANTS, n=1, cutoff=0.35)
+    if matches:
+        return matches[0]
+    return None
+
+
 class QueryParser:
     def __init__(self, ref_date: Optional[datetime] = None):
         self.ref_date = ref_date or DEFAULT_REF_DATE
@@ -127,30 +161,29 @@ Respond ONLY with valid JSON conforming to this schema:
     def _parse_rule_based(self, query: str) -> ParsedQuery:
         """
         High-precision rule-based parser that recognizes participants, dates, and semantic intent.
+        Includes fuzzy participant name correction per spec §7.
         """
         lower_q = query.lower()
         sender_filter = None
         date_range = None
         is_open_ended = False
 
-        # 1. Check participants (prioritize syntactic subject positions)
+        # 1. Check participants (prioritize syntactic subject positions with fuzzy matching)
         sender_match = re.search(r"\b(?:what|which|how)\s+did\s+([a-zA-Z]+)\b", lower_q)
         if sender_match:
-            cand = sender_match.group(1).capitalize()
-            if cand in PARTICIPANTS:
-                sender_filter = cand
+            sender_filter = match_participant(sender_match.group(1))
 
         if not sender_filter:
             sender_match2 = re.search(r"\b(?:did|does|is|was)\s+([a-zA-Z]+)\b", lower_q)
             if sender_match2:
-                cand = sender_match2.group(1).capitalize()
-                if cand in PARTICIPANTS:
-                    sender_filter = cand
+                sender_filter = match_participant(sender_match2.group(1))
 
         if not sender_filter:
-            for p in PARTICIPANTS:
-                if re.search(rf"\b{p.lower()}\b", lower_q):
-                    sender_filter = p
+            # Check individual words for participant names or close matches
+            for word in re.findall(r"\b[a-zA-Z]+\b", lower_q):
+                matched = match_participant(word)
+                if matched and word.lower() in [p.lower() for p in PARTICIPANTS] + list(COMMON_NAME_MAP.keys()):
+                    sender_filter = matched
                     break
 
         # 2. Check temporal patterns
@@ -185,10 +218,10 @@ Respond ONLY with valid JSON conforming to this schema:
 
         # 3. Clean query to get semantic_query
         semantic_q = query
+        # Remove carrier phrases with names (e.g. 'what did rahul say about', 'what did Priya say')
+        semantic_q = re.sub(r"\bwhat did\s+\w+\s+\w+\s+(?:about|for|on|regarding)?\b", "", semantic_q, flags=re.I)
+        semantic_q = re.sub(r"\bdid\s+\w+\s+(?:say|post|apply|confirm|agree)?\b", "", semantic_q, flags=re.I)
         if sender_filter:
-            semantic_q = re.sub(rf"\bwhat did {sender_filter.lower()}\s+\w+\s+(?:about|for|on)?\b", "", semantic_q, flags=re.I)
-            semantic_q = re.sub(rf"\bdid {sender_filter.lower()}\b", "", semantic_q, flags=re.I)
-            semantic_q = re.sub(rf"\bwhat did {sender_filter.lower()} say\b", "", semantic_q, flags=re.I)
             semantic_q = re.sub(rf"\b{sender_filter.lower()}'s?\b", "", semantic_q, flags=re.I)
             semantic_q = re.sub(rf"\bby {sender_filter.lower()}\b", "", semantic_q, flags=re.I)
 
