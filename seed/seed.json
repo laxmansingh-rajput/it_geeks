@@ -1,0 +1,73 @@
+{
+  "participants": [
+    {"name": "Priya", "style": "mostly formal, occasional Hinglish, replies fast"},
+    {"name": "Rohan", "style": "heavy Hinglish, frequent typos, short replies"},
+    {"name": "Amit", "style": "one-word replies, emoji-heavy, low engagement"},
+    {"name": "Sara", "style": "English-dominant, organizes plans, longer messages"},
+    {"name": "Karan", "style": "forwards a lot of links/text, sporadic activity"},
+    {"name": "Neha", "style": "formal English, precise, budget-conscious"},
+    {"name": "Vikram", "style": "heavy Hinglish, jokes, sarcasm"},
+    {"name": "Divya", "style": "mixed, night-owl posting pattern, voice-note style text"}
+  ],
+  "date_range": {
+    "start": "2026-03-01",
+    "end": "2026-09-01"
+  },
+  "message_count_target": 4200,
+  "decision_threads": [
+    {
+      "id": "thread_trip_destination",
+      "topic": "deciding the group trip destination",
+      "resolution": "Manali",
+      "approx_date": "2026-04-12",
+      "length_messages": 30,
+      "resolving_message_style": "casual confirmation, e.g. 'chalo Manali fix hai bhai' — must NOT contain the word 'decide', 'destination', or 'trip' explicitly in the resolving message"
+    },
+    {
+      "id": "thread_budget",
+      "topic": "agreeing on per-person budget for the trip",
+      "resolution": "8000 rupees per head",
+      "approx_date": "2026-04-20",
+      "length_messages": 25,
+      "resolving_message_style": "numeric confirmation buried in casual back-and-forth, no explicit 'budget finalized' phrasing"
+    },
+    {
+      "id": "thread_dates",
+      "topic": "finalizing travel dates",
+      "resolution": "May 15-19",
+      "approx_date": "2026-05-01",
+      "length_messages": 22,
+      "resolving_message_style": "someone just says 'ok booking kar raha hu 15 se' with no explicit date-confirmation language"
+    }
+  ],
+  "minor_recurring_topics": [
+    {
+      "id": "thread_rohan_bday",
+      "topic": "Rohan's surprise birthday dinner plan",
+      "resolution": "Dinner at Big Chill on Saturday",
+      "approx_date": "2026-03-24",
+      "length_messages": 18
+    },
+    {
+      "id": "thread_movie_outing",
+      "topic": "Watching the new sci-fi movie together",
+      "resolution": "Sunday 4 PM show booked at PVR",
+      "approx_date": "2026-06-14",
+      "length_messages": 16
+    },
+    {
+      "id": "thread_hackathon_team",
+      "topic": "Registering for the weekend AI hackathon",
+      "resolution": "Team registered under name NeuralKnights",
+      "approx_date": "2026-07-08",
+      "length_messages": 20
+    }
+  ],
+  "noise_profile": {
+    "one_word_reply_ratio": 0.15,
+    "forwarded_text_ratio": 0.05,
+    "typo_ratio": 0.10,
+    "code_mixing": "high",
+    "off_topic_chatter_ratio": 0.6
+  }
+}

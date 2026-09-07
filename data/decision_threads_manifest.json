@@ -1,0 +1,50 @@
+{
+  "thread_rohan_bday": {
+    "topic": "Rohan's surprise birthday dinner plan",
+    "resolution": "Dinner at Big Chill on Saturday",
+    "resolving_message_id": "m0521",
+    "resolving_message_text": "Saturday 7:30 PM Big Chill Khan Market confirmed. Don't tell Rohan in the other chat!",
+    "resolving_sender": "Priya",
+    "timestamp": "2026-03-24T18:55:13"
+  },
+  "thread_trip_destination": {
+    "topic": "deciding the group trip destination",
+    "resolution": "Manali",
+    "resolving_message_id": "m0952",
+    "resolving_message_text": "chalo Manali fix hai bhai",
+    "resolving_sender": "Rohan",
+    "timestamp": "2026-04-12T14:49:12"
+  },
+  "thread_budget": {
+    "topic": "agreeing on per-person budget for the trip",
+    "resolution": "8000 rupees per head",
+    "resolving_message_id": "m1150",
+    "resolving_message_text": "8000 each chalega sabko, Neha check kar lena",
+    "resolving_sender": "Priya",
+    "timestamp": "2026-04-20T20:11:11"
+  },
+  "thread_dates": {
+    "topic": "finalizing travel dates",
+    "resolution": "May 15-19",
+    "resolving_message_id": "m1445",
+    "resolving_message_text": "ok booking kar raha hu 15 se",
+    "resolving_sender": "Vikram",
+    "timestamp": "2026-05-01T15:58:40"
+  },
+  "thread_movie_outing": {
+    "topic": "Watching the new sci-fi movie together",
+    "resolution": "Sunday 4 PM show booked at PVR",
+    "resolving_message_id": "m2433",
+    "resolving_message_text": "Sunday 4 PM Select Citywalk IMAX 8 tickets booked! popcorn on Rohan",
+    "resolving_sender": "Vikram",
+    "timestamp": "2026-06-14T14:28:26"
+  },
+  "thread_hackathon_team": {
+    "topic": "Registering for the weekend AI hackathon",
+    "resolution": "Team registered under name NeuralKnights",
+    "resolving_message_id": "m2943",
+    "resolving_message_text": "Submitted registration under NeuralKnights! Verification email received.",
+    "resolving_sender": "Karan",
+    "timestamp": "2026-07-08T15:45:33"
+  }
+}
