@@ -4,6 +4,16 @@ An end-to-end semantic, attributed, and temporal search system built over a synt
 
 ---
 
+## 🎥 Demo Video
+
+Watch the complete demonstration of the system covering semantic search queries, Hinglish understanding, windowed evidence expansion, and the interactive web interface:
+
+- **Google Drive Stream / Download**: [Watch Demo Video (Google Drive)](https://drive.google.com/file/d/1JQrBScBzf9bNhswz3BZ-gvL4svHXab5I/view?usp=sharing)
+- **Local Repository File**: [`demo_video.mp4`](./demo_video.mp4)
+- **GitHub View**: [Watch Demo Video on GitHub](https://github.com/laxmansingh-rajput/it_geeks/blob/master/demo_video.mp4)
+
+---
+
 ## 1. Architecture
 
 ```mermaid
