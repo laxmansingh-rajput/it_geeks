@@ -45,7 +45,8 @@ def get_qdrant_client() -> QdrantClient:
     """
     url = os.getenv("QDRANT_URL", "http://localhost:6333")
     try:
-        client = QdrantClient(url=url, timeout=2)
+        # Check connection with adequate timeout
+        client = QdrantClient(url=url, timeout=30)
         client.get_collections()
         print(f"[Qdrant] Connected to Qdrant server at {url}")
         return client
@@ -113,8 +114,40 @@ class EmbeddingEngine:
             except Exception as e:
                 print(f"[EmbeddingEngine] Live API embedding batch failed ({e}). Falling back to local vectorizer.")
 
-        # Local dense multilingual semantic projection fallback
-        return [self._local_embed(t) for t in texts]
+        # Fast vectorized local dense multilingual semantic projection
+        all_vectors = []
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i + batch_size]
+            batch_mat = np.zeros((len(batch), self.num_features), dtype=np.float32)
+            for row_idx, text in enumerate(batch):
+                words = text.lower().split()
+                for w in words:
+                    w_clean = re.sub(r"[^\w]", "", w)
+                    if not w_clean:
+                        continue
+                    h = stable_hash(w_clean) % self.num_features
+                    batch_mat[row_idx, h] += 2.0
+                    if len(w_clean) >= 4:
+                        h_pref = stable_hash(w_clean[:4]) % self.num_features
+                        batch_mat[row_idx, h_pref] += 1.0
+                    if len(w_clean) >= 3:
+                        wrapped = f"^{w_clean}$"
+                        for c_i in range(len(wrapped) - 2):
+                            tri = wrapped[c_i:c_i+3]
+                            h_tri = stable_hash(tri) % self.num_features
+                            batch_mat[row_idx, h_tri] += 0.5
+                    concepts = get_semantic_concepts(w_clean)
+                    for c in concepts:
+                        hc = stable_hash(f"concept:{c}") % self.num_features
+                        batch_mat[row_idx, hc] += 1.5
+
+            # Vectorized matrix product for entire batch
+            dense_batch = np.dot(batch_mat, self._projection_matrix)
+            norms = np.linalg.norm(dense_batch, axis=1, keepdims=True)
+            norms[norms == 0] = 1.0
+            all_vectors.extend((dense_batch / norms).tolist())
+
+        return all_vectors
 
     def embed_query(self, text: str) -> List[float]:
         """Embed a single query string."""
