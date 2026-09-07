@@ -13,6 +13,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 from search.query_parser import QueryParser
 from search.retriever import GroupChatRetriever
 from search.synthesizer import AnswerSynthesizer
@@ -48,7 +51,8 @@ def run_search(query: str, parser: QueryParser, retriever: GroupChatRetriever, s
     print(f"\n[2] Retrieval: Found {len(hits)} matching windows from Qdrant.")
 
     if not hits:
-        print("No messages matched the specified criteria.")
+        print("\n" + format_separator("NO MATCH FOUND", "-"))
+        print(f"⚠️  Nothing matching \"{query}\" was discussed in this group chat.")
         return
 
     # Special case: open-ended date-only queries
@@ -64,9 +68,19 @@ def run_search(query: str, parser: QueryParser, retriever: GroupChatRetriever, s
                 print(f"    - \"{sample}\"")
         return
 
+    # Check top hit relevance before expanding
+    top_hit = hits[0]
+    top_context = synthesizer.expand_context(top_hit["center_message_id"], above=4, below=3)
+    answer = synthesizer.synthesize_answer(query, top_hit, top_context)
+
+    if "Nothing matching" in answer or "Nothing like this was discussed" in answer:
+        print("\n" + format_separator("NO MATCH FOUND", "-"))
+        print(f"⚠️  {answer}")
+        print(format_separator("-") + "\n")
+        return
+
     # 3. Context Expansion & Display
     print("\n[3] Matched Evidence & Surrounding Conversation:")
-    top_hit = hits[0]
 
     for rank, hit in enumerate(hits[:top_k], 1):
         c_id = hit["center_message_id"]
@@ -78,8 +92,6 @@ def run_search(query: str, parser: QueryParser, retriever: GroupChatRetriever, s
         print(synthesizer.format_verbatim_context(context_msgs))
 
     # 4. Synthesize Natural Language Answer
-    top_context = synthesizer.expand_context(top_hit["center_message_id"], above=4, below=3)
-    answer = synthesizer.synthesize_answer(query, top_hit, top_context)
     print("\n" + format_separator("AI SYNTHESIZED ANSWER", "*"))
     print(f"💡 {answer}")
     print(format_separator("*") + "\n")

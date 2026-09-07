@@ -8,7 +8,7 @@ import sys
 import os
 import json
 import urllib.parse
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 
 # Ensure project root is in sys.path
@@ -54,6 +54,7 @@ class SearchRequestHandler(BaseHTTPRequestHandler):
             content = f.read()
         self.send_response(200)
         self.send_header("Content-Type", content_type)
+        self.send_header("Connection", "close")
         self.send_header("Content-Length", str(len(content)))
         self.end_headers()
         self.wfile.write(content)
@@ -65,14 +66,39 @@ class SearchRequestHandler(BaseHTTPRequestHandler):
             return
 
         parsed = PARSER.parse(q)
+        if parsed.needs_clarification:
+            self.send_json({
+                "query": q,
+                "parsed": {
+                    "semantic_query": parsed.semantic_query,
+                    "sender_filter": parsed.sender_filter,
+                    "date_range": parsed.date_range,
+                    "is_open_ended": parsed.is_open_ended,
+                    "needs_clarification": True,
+                    "clarification_prompt": parsed.clarification_prompt
+                },
+                "is_matched": False,
+                "hits": [],
+                "answer": parsed.clarification_prompt or "Could you specify what topic, person, or timeframe you would like to search for?",
+                "context": []
+            })
+            return
+
         hits = RETRIEVER.retrieve(parsed, top_k=5)
 
         if not hits:
             self.send_json({
                 "query": q,
-                "parsed": parsed.dict(),
+                "parsed": {
+                    "semantic_query": parsed.semantic_query,
+                    "sender_filter": parsed.sender_filter,
+                    "date_range": parsed.date_range,
+                    "is_open_ended": parsed.is_open_ended,
+                    "needs_clarification": False
+                },
+                "is_matched": False,
                 "hits": [],
-                "answer": "No matching conversation was found for this query.",
+                "answer": "Nothing matching this was discussed in this group chat.",
                 "context": []
             })
             return
@@ -80,6 +106,8 @@ class SearchRequestHandler(BaseHTTPRequestHandler):
         top_hit = hits[0]
         context_msgs = SYNTHESIZER.expand_context(top_hit["center_message_id"], above=5, below=4)
         answer = SYNTHESIZER.synthesize_answer(q, top_hit, context_msgs)
+
+        is_matched = not ("Nothing matching" in answer or "Nothing like this was discussed" in answer)
 
         response_data = {
             "query": q,
@@ -90,9 +118,10 @@ class SearchRequestHandler(BaseHTTPRequestHandler):
                 "is_open_ended": parsed.is_open_ended,
                 "needs_clarification": parsed.needs_clarification
             },
-            "hits": hits,
+            "is_matched": is_matched,
+            "hits": hits if is_matched else [],
             "answer": answer,
-            "context": context_msgs
+            "context": context_msgs if is_matched else []
         }
         self.send_json(response_data)
 
@@ -112,6 +141,7 @@ class SearchRequestHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Connection", "close")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -123,7 +153,7 @@ class SearchRequestHandler(BaseHTTPRequestHandler):
 
 def run_server(port: int = 8080):
     server_address = ("", port)
-    httpd = HTTPServer(server_address, SearchRequestHandler)
+    httpd = ThreadingHTTPServer(server_address, SearchRequestHandler)
     print(f"\n=======================================================")
     print(f"  Group Chat Search Web App Running on http://localhost:{port}")
     print(f"=======================================================\n")

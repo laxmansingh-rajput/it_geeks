@@ -16,6 +16,9 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 from search.query_parser import QueryParser
 from search.retriever import GroupChatRetriever
 from search.synthesizer import AnswerSynthesizer
@@ -176,6 +179,33 @@ def run_evaluation():
     print(f"Zero-Overlap Retrieval Success   : {zero_overlap_top3}/{zero_overlap_count} ({(zero_overlap_top3/zero_overlap_count)*100:.1f}%)")
     print("=" * 70)
 
+    # Negative Out-of-Domain Evaluation (Zero-Match Rejection)
+    negative_queries = [
+        "who bought a Tesla rocket to Mars",
+        "recipe for chicken biryani",
+        "bitcoin price forecast in 2026",
+        "who won the cricket world cup",
+        "how to fix the engine of a Boeing 747"
+    ]
+    neg_correct = 0
+    print("\n" + "=" * 70)
+    print("  EVALUATING OUT-OF-DOMAIN / UNMATCHED QUERIES (REJECTION TEST)")
+    print("=" * 70)
+    for nq in negative_queries:
+        parsed_neg = parser.parse(nq)
+        hits_neg = retriever.retrieve(parsed_neg, top_k=5)
+        top_h = hits_neg[0] if hits_neg else None
+        ans = synthesizer.synthesize_answer(nq, top_h, []) if top_h else "Nothing matching this was discussed in this group chat."
+        is_rejected = len(hits_neg) == 0 or "Nothing" in ans
+        if is_rejected:
+            neg_correct += 1
+        status = "REJECTED (Correct)" if is_rejected else "FALSE MATCH"
+        print(f"Query: '{nq}' -> {status} [Hits: {len(hits_neg)}]")
+
+    neg_accuracy = (neg_correct / len(negative_queries)) * 100
+    print(f"Negative Query Rejection Accuracy: {neg_accuracy:.1f}% ({neg_correct}/{len(negative_queries)})")
+    print("=" * 70)
+
     # Save results JSON
     results_json = EVAL_DIR / "eval_results.json"
     with open(results_json, "w", encoding="utf-8") as f:
@@ -187,7 +217,8 @@ def run_evaluation():
                 "recall_at_1_pct": rec_at_1,
                 "recall_at_3_pct": rec_at_3,
                 "recall_at_5_pct": rec_at_5,
-                "mrr": mrr
+                "mrr": mrr,
+                "negative_rejection_pct": neg_accuracy
             },
             "queries": results
         }, f, indent=2, ensure_ascii=False)
@@ -196,7 +227,7 @@ def run_evaluation():
     md_lines = [
         "# Evaluation Results (40 Test Queries)",
         "",
-        f"**Summary**: 40/40 queries evaluated against corpus of 4,200 messages. **Recall@3: {rec_at_3:.1f}%**, **Zero Keyword Overlap Queries: {zero_overlap_count} (100% verified)**, **Clarification Triggers: {clarification_triggers}**.",
+        f"**Summary**: 40/40 queries evaluated against corpus of 4,200 messages. **Recall@3: {rec_at_3:.1f}%**, **Zero Keyword Overlap Queries: {zero_overlap_count} (100% verified)**, **Clarification Triggers: {clarification_triggers}**, **Out-of-Domain Rejection Accuracy: {neg_accuracy:.1f}%**.",
         "",
         "| ID | Type | Query | Gold Msg | Top-1 Match | @1 | @3 | @5 | Zero Overlap |",
         "|---|---|---|---|---|:---:|:---:|:---:|:---:|"

@@ -28,15 +28,17 @@ def to_unix(iso_str: str) -> int:
 
 
 class GroupChatRetriever:
-    def __init__(self, client: Optional[QdrantClient] = None, collection_name: str = COLLECTION_NAME):
+    def __init__(self, client: Optional[QdrantClient] = None, collection_name: str = COLLECTION_NAME, min_score_threshold: float = 0.32):
         self.client = client or get_qdrant_client()
         self.collection_name = collection_name
         self.embedder = EmbeddingEngine()
+        self.min_score_threshold = min_score_threshold
 
-    def retrieve(self, parsed_query: ParsedQuery, top_k: int = 8) -> List[Dict[str, Any]]:
+    def retrieve(self, parsed_query: ParsedQuery, top_k: int = 8, min_score: Optional[float] = None) -> List[Dict[str, Any]]:
         """
         Execute filtered vector search or temporal scroll.
         Returns deduplicated ranked list of hits.
+        Filters out low-similarity hits when no hard filters are present.
         """
         # Build Qdrant payload filters
         conditions = []
@@ -71,11 +73,17 @@ class GroupChatRetriever:
         # Execute search in Qdrant
         raw_hits = self._search_qdrant(query_vector, qfilter, limit=top_k * 2)
 
+        # Determine threshold: relaxed for filtered queries, strict for open semantic queries
+        threshold = min_score if min_score is not None else (0.0 if conditions else self.min_score_threshold)
+
         # Deduplicate hits by center_message_id, retaining highest score
         seen_centers = set()
         deduped_hits = []
 
         for hit in raw_hits:
+            score = float(hit.score)
+            if score < threshold:
+                continue
             payload = hit.payload or {}
             center_id = payload.get("center_message_id")
             if not center_id or center_id in seen_centers:
@@ -83,7 +91,7 @@ class GroupChatRetriever:
             seen_centers.add(center_id)
             deduped_hits.append({
                 "center_message_id": center_id,
-                "score": float(hit.score),
+                "score": score,
                 "sender": payload.get("sender"),
                 "timestamp": payload.get("timestamp_iso"),
                 "thread_id": payload.get("thread_id"),

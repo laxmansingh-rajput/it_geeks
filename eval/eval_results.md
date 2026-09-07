@@ -1,15 +1,15 @@
 # Evaluation Results (40 Test Queries)
 
-**Summary**: 40/40 queries evaluated against corpus of 4,200 messages. **Recall@3: 77.5%**, **Zero Keyword Overlap Queries: 10 (100% verified)**, **Clarification Triggers: 0**.
+**Summary**: 40/40 queries evaluated against corpus of 4,200 messages. **Recall@3: 77.5%**, **Zero Keyword Overlap Queries: 10 (100% verified)**, **Clarification Triggers: 0**, **Out-of-Domain Rejection Accuracy: 100.0%**.
 
 | ID | Type | Query | Gold Msg | Top-1 Match | @1 | @3 | @5 | Zero Overlap |
 |---|---|---|---|---|:---:|:---:|:---:|:---:|
-| q01 | Semantic | when did we decide on Manali | `m0952` | `m0945` | ❌ | ✅ | ✅ | No |
-| q02 | Semantic | where did we agree to travel | `m0952` | `m0945` | ❌ | ✅ | ✅ | ⭐️ **Yes** |
-| q03 | Semantic | when did we decide on the trip destination | `m0952` | `m0946` | ❌ | ✅ | ✅ | ⭐️ **Yes** |
+| q01 | Semantic | when did we decide on Manali | `m0952` | `m0946` | ❌ | ✅ | ✅ | No |
+| q02 | Semantic | where did we agree to travel | `m0952` | `m0949` | ❌ | ✅ | ✅ | ⭐️ **Yes** |
+| q03 | Semantic | when did we decide on the trip destination | `m0952` | `m0942` | ❌ | ✅ | ✅ | ⭐️ **Yes** |
 | q04 | Semantic | how much per head was agreed for Manali | `m1150` | `m0947` | ❌ | ❌ | ❌ | ⭐️ **Yes** |
-| q05 | Semantic | what total expenditure was confirmed for Old Manali | `m1150` | `m0950` | ❌ | ❌ | ❌ | ⭐️ **Yes** |
-| q06 | Semantic | when did we finalize travel dates for the getaway | `m1445` | `m0950` | ❌ | ✅ | ✅ | ⭐️ **Yes** |
+| q05 | Semantic | what total expenditure was confirmed for Old Manali | `m1150` | `m0948` | ❌ | ❌ | ❌ | ⭐️ **Yes** |
+| q06 | Semantic | when did we finalize travel dates for the getaway | `m1445` | `m1445` | ✅ | ✅ | ✅ | ⭐️ **Yes** |
 | q07 | Semantic | which days are reserved for our holiday | `m1445` | `m1444` | ❌ | ✅ | ✅ | ⭐️ **Yes** |
 | q08 | Semantic | what did Amit reply about going to the hills | `m0950` | `m0943` | ❌ | ✅ | ✅ | ⭐️ **Yes** |
 | q09 | Semantic | did Amit apply for office leave | `m1442` | `m1442` | ✅ | ✅ | ✅ | ⭐️ **Yes** |

@@ -97,8 +97,12 @@ class AnswerSynthesizer:
 
     def synthesize_answer(self, query: str, hit: Dict[str, Any], context_msgs: List[Dict[str, Any]]) -> str:
         """
-        Synthesize a natural language answer citing the matched message.
+        Synthesize a natural language answer citing the matched message,
+        or clearly decline if the retrieved messages do not match the query.
         """
+        if not hit or hit.get("score", 1.0) < 0.30:
+            return "Nothing matching this was discussed in this group chat."
+
         matched_id = hit["center_message_id"]
         sender = hit.get("sender")
         raw_text = hit.get("raw_text")
@@ -120,9 +124,14 @@ Surrounding Context:
 {context_str}
 
 Instructions:
-1. Provide a direct, concise 1-2 sentence answer in natural language addressing the user's question.
-2. Explicitly cite the message ID (e.g. [{matched_id}]), sender ({sender}), and timestamp.
-3. If the query asks about a decision or topic, mention the resolution and how it was confirmed."""
+1. RELEVANCE CHECK: Does the retrieved conversation context actually discuss, address, or answer the user's query?
+   - If NO (the topic was not discussed or the messages are unrelated): reply strictly with:
+     "Nothing like this was discussed in this group chat."
+   - If YES:
+     a. Provide a direct, concise 1-2 sentence answer in natural language addressing the user's question.
+     b. Explicitly cite the message ID (e.g. [{matched_id}]), sender ({sender}), and timestamp.
+     c. If the query asks about a decision or topic, mention the resolution and how it was confirmed.
+2. Under no circumstances should you fabricate facts or force an unrelated message to answer the query."""
                 
                 resp = self.llm.invoke(prompt)
                 return resp.content.strip()

@@ -3,784 +3,787 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Group Chat Search — Semantic Archive</title>
+  <title>Thread — Group Chat Search</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-canvas: #090D14;
-      --bg-panel: #0F1420;
-      --bg-card: #151C2C;
-      --bg-card-hover: #1A2336;
-      --bg-muted: #1E283D;
-      --border-soft: rgba(255, 255, 255, 0.08);
-      --border-mid: rgba(255, 255, 255, 0.14);
-      --border-focus: #3B82F6;
-      --primary: #2563EB;
-      --primary-hover: #1D4ED8;
-      --primary-soft: rgba(37, 99, 235, 0.12);
-      --primary-tint: #60A5FA;
-      --success: #10B981;
-      --success-soft: rgba(16, 185, 129, 0.12);
-      --success-border: rgba(16, 185, 129, 0.3);
-      --text-main: #F1F5F9;
-      --text-secondary: #94A3B8;
-      --text-muted: #64748B;
-      --text-dim: #475569;
-      --bubble-neutral: #141B2A;
-      --bubble-highlight: #0D2421;
-      --bubble-highlight-border: #059669;
+      --bg: #111009;
+      --surface: #1a1815;
+      --surface-raised: #222019;
+      --surface-hover: #2a2720;
+      --border: rgba(255, 240, 210, 0.07);
+      --border-strong: rgba(255, 240, 210, 0.14);
+      --amber: #d4a054;
+      --amber-dim: rgba(212, 160, 84, 0.15);
+      --green: #25a865;
+      --green-soft: rgba(37, 168, 101, 0.12);
+      --green-glow: rgba(37, 168, 101, 0.25);
+      --text: #ede8df;
+      --text-soft: #a89f90;
+      --text-faint: #6b6358;
+      --bubble: #1e1c18;
+      --bubble-match: #152318;
+      --radius: 6px;
+      --radius-lg: 10px;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: var(--bg-canvas);
-      color: var(--text-main);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Sans', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.5;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Top Navigation */
-    header {
-      background: rgba(15, 20, 32, 0.85);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border-soft);
-      padding: 0.85rem 2rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
     }
 
-    .nav-left {
+    /* ── Header ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+    }
+
+    .header-inner {
+      max-width: 720px;
+      margin: 0 auto;
       display: flex;
-      align-items: center;
+      align-items: baseline;
+      justify-content: space-between;
+      padding: 1.1rem 0 0;
+    }
+
+    .logo {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 1.35rem;
+      font-weight: 500;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+
+    .logo em {
+      font-style: italic;
+      color: var(--amber);
+    }
+
+    nav {
+      display: flex;
       gap: 1.5rem;
     }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    .brand-logo {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #1E293B, #0F172A);
-      border: 1px solid var(--border-mid);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--primary-tint);
-    }
-
-    .brand-name {
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      color: var(--text-main);
-    }
-
-    .brand-badge {
-      font-size: 0.7rem;
-      background: var(--bg-card);
-      border: 1px solid var(--border-soft);
-      color: var(--text-muted);
-      padding: 0.15rem 0.45rem;
-      border-radius: 4px;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .nav-tabs {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .nav-tab-btn {
-      background: transparent;
-      border: 1px solid transparent;
-      color: var(--text-secondary);
-      padding: 0.4rem 0.85rem;
-      font-size: 0.825rem;
-      font-weight: 500;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      transition: all 0.15s ease;
-    }
-
-    .nav-tab-btn:hover {
-      color: var(--text-main);
-      background: var(--bg-card);
-    }
-
-    .nav-tab-btn.active {
-      color: var(--text-main);
-      background: var(--bg-card);
-      border-color: var(--border-soft);
-    }
-
-    .meta-indicators {
-      display: flex;
-      align-items: center;
-      gap: 0.85rem;
-    }
-
-    .indicator-pill {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.3rem 0.65rem;
-      border-radius: 6px;
-      background: var(--bg-panel);
-      border: 1px solid var(--border-soft);
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--success);
-    }
-
-    /* Main Container */
-    main {
-      max-width: 1040px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 2.25rem 1.5rem 4rem;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 1.75rem;
-    }
-
-    /* Search Module */
-    .search-panel {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-soft);
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
-    }
-
-    .search-input-wrap {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .search-icon {
-      position: absolute;
-      left: 1.1rem;
-      color: var(--text-muted);
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-    }
-
-    .search-input {
-      width: 100%;
-      background: var(--bg-card);
-      border: 1px solid var(--border-mid);
-      border-radius: 10px;
-      padding: 0.85rem 7.5rem 0.85rem 2.85rem;
-      font-size: 0.975rem;
-      color: var(--text-main);
-      font-family: inherit;
-      letter-spacing: -0.01em;
-      transition: all 0.2s ease;
-    }
-
-    .search-input::placeholder {
-      color: var(--text-dim);
-    }
-
-    .search-input:focus {
-      outline: none;
-      border-color: var(--border-focus);
-      background: #171F32;
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-    }
-
-    .search-actions {
-      position: absolute;
-      right: 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .btn-submit {
-      background: var(--primary);
-      color: #FFFFFF;
-      font-weight: 500;
+    .nav-link {
+      background: none;
       border: none;
-      border-radius: 7px;
-      padding: 0.45rem 1rem;
-      font-size: 0.85rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      transition: background 0.15s ease;
-    }
-
-    .btn-submit:hover {
-      background: var(--primary-hover);
-    }
-
-    /* Query Filters / Presets */
-    .filter-groups {
-      margin-top: 1.1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .filter-header {
-      font-size: 0.725rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-    }
-
-    .preset-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-    }
-
-    .chip {
-      background: var(--bg-card);
-      border: 1px solid var(--border-soft);
-      color: var(--text-secondary);
-      border-radius: 6px;
-      padding: 0.35rem 0.65rem;
-      font-size: 0.8rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      transition: all 0.15s ease;
+      color: var(--text-faint);
       font-family: inherit;
-    }
-
-    .chip:hover {
-      background: var(--bg-card-hover);
-      color: var(--text-main);
-      border-color: var(--border-mid);
-    }
-
-    .chip.verified {
-      border-color: rgba(59, 130, 246, 0.25);
-      background: rgba(37, 99, 235, 0.06);
-    }
-
-    .chip.verified:hover {
-      background: rgba(37, 99, 235, 0.14);
-      border-color: rgba(59, 130, 246, 0.45);
-    }
-
-    /* Extracted Slots Metadata Box */
-    .slots-telemetry {
-      margin-top: 1.25rem;
-      padding: 0.75rem 1rem;
-      background: #0B0F19;
-      border: 1px solid var(--border-soft);
-      border-radius: 8px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1.25rem;
-      font-size: 0.8rem;
-    }
-
-    .slot-cell {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-    }
-
-    .slot-name {
-      color: var(--text-muted);
+      font-size: 0.82rem;
       font-weight: 500;
+      cursor: pointer;
+      padding: 0 0 0.85rem;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+      letter-spacing: 0.01em;
     }
 
-    .slot-data {
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--text-main);
-      background: var(--bg-card);
-      border: 1px solid var(--border-soft);
-      padding: 0.15rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
+    .nav-link:hover { color: var(--text-soft); }
+
+    .nav-link.active {
+      color: var(--text);
+      border-bottom-color: var(--amber);
     }
 
-    /* Answer Summary Card */
-    .answer-card {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-mid);
-      border-left: 3px solid var(--primary-tint);
-      border-radius: 10px;
-      padding: 1.25rem 1.5rem;
+    .stats-bar {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0.5rem 0 0.75rem;
       display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
-    }
-
-    .answer-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .answer-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--primary-tint);
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .answer-body {
-      font-size: 1.025rem;
-      line-height: 1.55;
-      color: var(--text-main);
-      font-weight: 400;
-    }
-
-    /* Conversation Stream View */
-    .stream-section {
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .stream-heading {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 0.25rem;
-    }
-
-    .stream-title {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      letter-spacing: -0.01em;
-    }
-
-    .stream-hint {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    .chat-container {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-soft);
-      border-radius: 12px;
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-
-    .message-row {
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-      max-width: 82%;
-      background: var(--bubble-neutral);
-      border: 1px solid var(--border-soft);
-      border-radius: 10px;
-      padding: 0.75rem 1rem;
-      position: relative;
-    }
-
-    .message-row.matched {
-      background: var(--bubble-highlight);
-      border-color: var(--bubble-highlight-border);
-      box-shadow: 0 2px 10px rgba(5, 150, 105, 0.15);
-    }
-
-    .msg-meta {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      font-size: 0.75rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      padding-bottom: 0.35rem;
-      margin-bottom: 0.15rem;
-    }
-
-    .participant-tag {
-      font-weight: 600;
-      color: #93C5FD;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .participant-tag.matched-sender {
-      color: #6EE7B7;
-    }
-
-    .matched-flag {
-      font-size: 0.65rem;
-      font-weight: 600;
-      color: #A7F3D0;
-      background: rgba(5, 150, 105, 0.3);
-      padding: 0.1rem 0.4rem;
-      border-radius: 3px;
+      gap: 1.25rem;
+      font-size: 0.72rem;
+      color: var(--text-faint);
       letter-spacing: 0.02em;
     }
 
-    .msg-time-info {
-      color: var(--text-muted);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.7rem;
+    .stats-bar span::before {
+      content: '·';
+      margin-right: 1.25rem;
+      color: var(--border-strong);
     }
 
-    .msg-content {
-      font-size: 0.925rem;
-      line-height: 1.45;
-      color: var(--text-main);
-      word-break: break-word;
+    .stats-bar span:first-child::before { content: none; margin: 0; }
+
+    /* ── Main ── */
+    main {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 5rem;
     }
 
-    /* Benchmarks Tab */
-    .benchmark-view {
-      background: var(--bg-panel);
-      border: 1px solid var(--border-soft);
-      border-radius: 12px;
-      padding: 1.5rem;
-    }
+    .view { display: flex; flex-direction: column; gap: 2rem; }
 
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
+    /* ── Search ── */
+    .search-block { display: flex; flex-direction: column; gap: 1.25rem; }
 
-    .metric-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-soft);
-      border-radius: 8px;
-      padding: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-
-    .metric-title {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      font-weight: 500;
-    }
-
-    .metric-value {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--text-main);
+    .search-label {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 1.65rem;
+      font-weight: 400;
+      line-height: 1.25;
+      color: var(--text);
       letter-spacing: -0.02em;
     }
 
-    .metric-sub {
-      font-size: 0.7rem;
-      color: var(--text-secondary);
+    .search-label span { color: var(--text-soft); }
+
+    .search-form {
+      display: flex;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--surface);
+      transition: border-color 0.2s;
     }
 
-    .table-wrap {
-      overflow-x: auto;
-      border: 1px solid var(--border-soft);
-      border-radius: 8px;
+    .search-form:focus-within {
+      border-color: var(--amber);
     }
 
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-      text-align: left;
+    .search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 0.85rem 1rem;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--text);
+      outline: none;
     }
 
-    .data-table th {
-      background: var(--bg-card);
-      color: var(--text-muted);
+    .search-input::placeholder { color: var(--text-faint); }
+
+    .btn-search {
+      background: var(--amber);
+      color: #1a1208;
+      border: none;
+      padding: 0 1.35rem;
+      font-family: inherit;
+      font-size: 0.82rem;
       font-weight: 600;
-      padding: 0.65rem 0.85rem;
-      border-bottom: 1px solid var(--border-soft);
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.15s;
       white-space: nowrap;
     }
 
-    .data-table td {
-      padding: 0.65rem 0.85rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      color: var(--text-secondary);
+    .btn-search:hover { background: #e0ad62; }
+
+    /* ── Presets ── */
+    .presets { display: flex; flex-direction: column; gap: 0.85rem; }
+
+    .preset-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.35rem 0.5rem;
     }
 
-    .data-table tr:hover td {
-      background: rgba(255, 255, 255, 0.02);
-      color: var(--text-main);
+    .preset-label {
+      font-size: 0.72rem;
+      color: var(--text-faint);
+      min-width: 5.5rem;
+      flex-shrink: 0;
     }
 
-    .tag-badge {
-      font-family: 'JetBrains Mono', monospace;
+    .preset-link {
+      background: none;
+      border: none;
+      color: var(--text-soft);
+      font-family: inherit;
+      font-size: 0.78rem;
+      cursor: pointer;
+      padding: 0.15rem 0;
+      text-decoration: underline;
+      text-decoration-color: var(--border-strong);
+      text-underline-offset: 3px;
+      transition: color 0.15s, text-decoration-color 0.15s;
+    }
+
+    .preset-link:hover {
+      color: var(--amber);
+      text-decoration-color: var(--amber);
+    }
+
+    .preset-link.semantic { color: var(--text-soft); }
+
+    /* ── Parsed metadata ── */
+    .parsed-bar {
+      display: none;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.25rem;
+      padding: 0.65rem 0;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-faint);
+    }
+
+    .parsed-bar.visible { display: flex; }
+
+    .parsed-item strong {
+      color: var(--text-soft);
+      font-weight: 500;
+    }
+
+    .parsed-item code {
+      font-family: 'IBM Plex Sans', monospace;
+      font-size: 0.72rem;
+      color: var(--text);
+      background: var(--surface-raised);
+      padding: 0.1rem 0.4rem;
+      border-radius: 3px;
+      margin-left: 0.25rem;
+    }
+
+    /* ── Loader ── */
+    .loader {
+      display: none;
+      padding: 2rem 0;
+      text-align: center;
+      color: var(--text-faint);
+      font-size: 0.85rem;
+    }
+
+    .loader.visible { display: block; }
+
+    .loader-dots {
+      display: inline-flex;
+      gap: 5px;
+      margin-bottom: 0.6rem;
+    }
+
+    .loader-dots i {
+      display: block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--amber);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    .loader-dots i:nth-child(2) { animation-delay: 0.2s; }
+    .loader-dots i:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.25; transform: scale(0.85); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+
+    /* ── Results ── */
+    .results { display: none; flex-direction: column; gap: 2rem; }
+    .results.visible { display: flex; }
+
+    .answer-block {
+      border-left: 2px solid var(--amber);
+      padding-left: 1.25rem;
+      transition: border-color 0.2s;
+    }
+
+    .answer-block.unmatched {
+      border-left-color: #e07a5f;
+    }
+
+    .answer-block.unmatched .answer-kicker {
+      color: #e07a5f;
+    }
+
+    .answer-kicker {
       font-size: 0.7rem;
-      padding: 0.15rem 0.4rem;
-      border-radius: 4px;
-      background: var(--bg-muted);
-      color: var(--text-main);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 0.5rem;
     }
 
-    .tag-success {
-      color: #34D399;
+    .answer-text {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 1.2rem;
+      line-height: 1.6;
+      color: var(--text);
+      font-weight: 400;
+    }
+
+    /* ── No Match State ── */
+    .no-match-card {
+      background: var(--surface);
+      border: 1px dashed rgba(224, 122, 95, 0.35);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem 1.5rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .no-match-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: #e07a5f;
+      background: rgba(224, 122, 95, 0.12);
+      border: 1px solid rgba(224, 122, 95, 0.28);
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+    }
+
+    .no-match-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .no-match-desc {
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      max-width: 480px;
+      line-height: 1.5;
+    }
+
+    .no-match-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.45rem;
+      margin-top: 0.4rem;
+    }
+
+    .btn-suggest {
+      background: var(--surface-raised);
+      border: 1px solid var(--border-strong);
+      color: var(--text-soft);
+      font-family: inherit;
+      font-size: 0.76rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-suggest:hover {
+      border-color: var(--amber);
+      color: var(--text);
+    }
+
+    /* ── Chat stream ── */
+    .messages-block { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .messages-heading {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-faint);
+    }
+
+    .chat-wall {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 520px;
+      overflow-y: auto;
+    }
+
+    .chat-wall::-webkit-scrollbar { width: 4px; }
+    .chat-wall::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+    .msg {
+      max-width: 88%;
+      padding: 0.55rem 0.75rem;
+      border-radius: var(--radius);
+      background: var(--bubble);
+      border: 1px solid var(--border);
+      position: relative;
+    }
+
+    .msg.match {
+      background: var(--bubble-match);
+      border-color: var(--green-glow);
+      box-shadow: inset 3px 0 0 var(--green);
+    }
+
+    .msg-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .msg-sender {
+      font-size: 0.75rem;
       font-weight: 600;
     }
 
-    .tag-muted {
-      color: var(--text-dim);
+    .msg.match .msg-sender { color: var(--green); }
+
+    .msg-badge {
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--green);
+      background: var(--green-soft);
+      padding: 0.1rem 0.35rem;
+      border-radius: 2px;
     }
 
-    /* Loader */
-    .loader-panel {
-      display: none;
-      text-align: center;
-      padding: 2.5rem;
-      color: var(--text-muted);
-      font-size: 0.875rem;
+    .msg-time {
+      font-size: 0.68rem;
+      color: var(--text-faint);
+      white-space: nowrap;
     }
 
-    .loader-ring {
-      display: inline-block;
-      width: 24px;
-      height: 24px;
-      border: 2px solid rgba(255, 255, 255, 0.1);
-      border-radius: 50%;
-      border-top-color: var(--primary-tint);
-      animation: spin 0.7s linear infinite;
-      margin-bottom: 0.65rem;
+    .msg-body {
+      font-size: 0.88rem;
+      line-height: 1.45;
+      color: var(--text);
+      word-break: break-word;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    /* ── Benchmark ── */
+    .bench-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .bench-title {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+    }
+
+    .bench-desc {
+      font-size: 0.82rem;
+      color: var(--text-soft);
+      margin-top: 0.3rem;
+      max-width: 28rem;
+    }
+
+    .btn-ghost {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      color: var(--text-soft);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.4rem 0.85rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--amber);
+      color: var(--text);
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    @media (min-width: 540px) {
+      .metrics { grid-template-columns: repeat(4, 1fr); }
+    }
+
+    .metric {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem;
+    }
+
+    .metric-label {
+      font-size: 0.68rem;
+      color: var(--text-faint);
+      line-height: 1.3;
+    }
+
+    .metric-num {
+      font-family: 'Newsreader', Georgia, serif;
+      font-size: 1.65rem;
+      font-weight: 500;
+      color: var(--text);
+      margin: 0.2rem 0 0.1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .metric-note {
+      font-size: 0.68rem;
+      color: var(--text-faint);
+    }
+
+    .table-scroll {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    thead th {
+      background: var(--surface-raised);
+      color: var(--text-faint);
+      font-weight: 500;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.55rem 0.7rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 0.55rem 0.7rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-soft);
+      vertical-align: top;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    tbody tr:hover td { background: var(--surface-hover); }
+
+    .cell-id {
+      font-size: 0.7rem;
+      color: var(--text-faint);
+    }
+
+    .cell-query {
+      color: var(--text);
+      font-weight: 500;
+      max-width: 220px;
+    }
+
+    .cell-hit { font-size: 0.7rem; color: var(--amber); }
+
+    .mark-yes { color: var(--green); font-weight: 600; }
+    .mark-no { color: var(--text-faint); }
+
+    .tag-zo {
+      font-size: 0.68rem;
+      color: var(--amber);
+    }
+
+    @media (max-width: 480px) {
+      .header-inner { flex-direction: column; gap: 0.5rem; }
+      .stats-bar { flex-wrap: wrap; gap: 0.4rem; }
+      .stats-bar span::before { display: none; }
+      .search-label { font-size: 1.35rem; }
+      .bench-header { flex-direction: column; }
     }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="nav-left">
-      <a href="#" class="brand">
-        <div class="brand-logo">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-          </svg>
-        </div>
-        <span class="brand-name">ChatSearch</span>
-        <span class="brand-badge">Hinglish Core</span>
-      </a>
-      <div class="nav-tabs">
-        <button id="tab-search" class="nav-tab-btn active" onclick="switchView('search')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          Search
-        </button>
-        <button id="tab-eval" class="nav-tab-btn" onclick="switchView('eval')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-          Benchmark Evaluation
-        </button>
-      </div>
+    <div class="header-inner">
+      <a href="#" class="logo">thread<em>.</em></a>
+      <nav>
+        <button id="tab-search" class="nav-link active" onclick="switchView('search')">Search</button>
+        <button id="tab-eval" class="nav-link" onclick="switchView('eval')">Benchmark</button>
+      </nav>
     </div>
-    <div class="meta-indicators">
-      <div class="indicator-pill"><span class="status-dot"></span> 4,200 indexed</div>
-      <div class="indicator-pill">8 senders</div>
-      <div class="indicator-pill">Qdrant v1.13</div>
+    <div class="stats-bar">
+      <span>4,200 messages</span>
+      <span>8 people</span>
+      <span>Qdrant index</span>
     </div>
   </header>
 
   <main>
-    <!-- View 1: Search Workspace -->
-    <div id="view-search-wrapper" style="display: flex; flex-direction: column; gap: 1.75rem;">
-      <section class="search-panel">
-        <form id="search-form" onsubmit="executeSearch(event)">
-          <div class="search-input-wrap">
-            <div class="search-icon">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            </div>
-            <input type="text" id="query-input" class="search-input" placeholder="Search topics, decisions, participants, or dates (e.g. what did Priya say about the trip budget)..." autofocus autocomplete="off">
-            <div class="search-actions">
-              <button type="submit" class="btn-submit">
-                <span>Search</span>
-              </button>
-            </div>
-          </div>
+    <!-- Search view -->
+    <div id="view-search-wrapper" class="view">
+      <div class="search-block">
+        <h1 class="search-label">Find anything in the <span>group chat</span></h1>
+
+        <form id="search-form" class="search-form" onsubmit="executeSearch(event)">
+          <input type="text" id="query-input" class="search-input"
+            placeholder="what did Priya say about the trip budget…"
+            autofocus autocomplete="off">
+          <button type="submit" class="btn-search">Go</button>
         </form>
 
-        <div class="filter-groups">
-          <div>
-            <div class="filter-header" style="margin-bottom: 0.4rem;">Zero-Keyword Overlap (Semantic Verification)</div>
-            <div class="preset-chips">
-              <button class="chip verified" onclick="setQuery('where did we agree to travel')">where did we agree to travel</button>
-              <button class="chip verified" onclick="setQuery('when did we decide on the trip destination')">trip destination decision</button>
-              <button class="chip verified" onclick="setQuery('did Amit apply for office leave')">did Amit apply for office leave</button>
-              <button class="chip verified" onclick="setQuery('which days are reserved for our holiday')">reserved holiday dates</button>
-              <button class="chip verified" onclick="setQuery('venue for birthday boy\'s surprise')">birthday dinner venue</button>
-              <button class="chip verified" onclick="setQuery('which cinema hall will we visit')">which cinema hall</button>
-            </div>
+        <div class="presets">
+          <div class="preset-row">
+            <span class="preset-label">No keyword match</span>
+            <button class="preset-link semantic" onclick="setQuery('where did we agree to travel')">where did we agree to travel</button>
+            <button class="preset-link semantic" onclick="setQuery('when did we decide on the trip destination')">trip destination decision</button>
+            <button class="preset-link semantic" onclick="setQuery('did Amit apply for office leave')">did Amit apply for leave</button>
+            <button class="preset-link semantic" onclick="setQuery('which days are reserved for our holiday')">reserved holiday dates</button>
+            <button class="preset-link semantic" onclick="setQuery('venue for birthday boy\'s surprise')">birthday dinner venue</button>
+            <button class="preset-link semantic" onclick="setQuery('which cinema hall will we visit')">which cinema hall</button>
           </div>
-
-          <div>
-            <div class="filter-header" style="margin-bottom: 0.4rem;">Attributed & Temporal Queries</div>
-            <div class="preset-chips">
-              <button class="chip" onclick="setQuery('what did Priya say about the trip budget')">Priya & budget</button>
-              <button class="chip" onclick="setQuery('what did rahul say about the trip budget')">Rahul / Rohan & budget</button>
-              <button class="chip" onclick="setQuery('what did Divya say about Kasol crowd')">Divya on Kasol</button>
-              <button class="chip" onclick="setQuery('budget discussions on April 20')">April 20 budget thread</button>
-              <button class="chip" onclick="setQuery('what did Vikram book for the movie in June')">Vikram June movie booking</button>
-            </div>
+          <div class="preset-row">
+            <span class="preset-label">By person / date</span>
+            <button class="preset-link" onclick="setQuery('what did Priya say about the trip budget')">Priya on budget</button>
+            <button class="preset-link" onclick="setQuery('what did rahul say about the trip budget')">Rahul on budget</button>
+            <button class="preset-link" onclick="setQuery('what did Divya say about Kasol crowd')">Divya on Kasol</button>
+            <button class="preset-link" onclick="setQuery('budget discussions on April 20')">April 20 budget</button>
+            <button class="preset-link" onclick="setQuery('what did Vikram book for the movie in June')">Vikram's June booking</button>
           </div>
-        </div>
-
-        <div id="slots-telemetry" class="slots-telemetry" style="display: none;">
-          <div class="slot-cell">
-            <span class="slot-name">Semantic Query:</span>
-            <span id="slot-semantic" class="slot-data">-</span>
-          </div>
-          <div class="slot-cell">
-            <span class="slot-name">Sender Filter:</span>
-            <span id="slot-sender" class="slot-data">-</span>
-          </div>
-          <div class="slot-cell">
-            <span class="slot-name">Date Range:</span>
-            <span id="slot-date" class="slot-data">-</span>
-          </div>
-          <div class="slot-cell">
-            <span class="slot-name">Ranked Matches:</span>
-            <span id="slot-hits" class="slot-data">-</span>
+          <div class="preset-row">
+            <span class="preset-label" style="color: #e07a5f;">Unmatched tests</span>
+            <button class="preset-link" style="border-color: rgba(224, 122, 95, 0.35); color: #e07a5f;" onclick="setQuery('who bought a Tesla rocket to Mars')">Tesla rocket</button>
+            <button class="preset-link" style="border-color: rgba(224, 122, 95, 0.35); color: #e07a5f;" onclick="setQuery('recipe for chicken biryani')">recipe for biryani</button>
+            <button class="preset-link" style="border-color: rgba(224, 122, 95, 0.35); color: #e07a5f;" onclick="setQuery('bitcoin price forecast in 2026')">bitcoin forecast</button>
+            <button class="preset-link" style="border-color: rgba(224, 122, 95, 0.35); color: #e07a5f;" onclick="setQuery('who won the cricket world cup')">cricket world cup</button>
           </div>
         </div>
-      </section>
 
-      <div id="loader" class="loader-panel">
-        <div class="loader-ring"></div>
-        <div>Querying vector index & expanding conversation context...</div>
+        <div id="slots-telemetry" class="parsed-bar">
+          <span class="parsed-item">Topic <code id="slot-semantic">—</code></span>
+          <span class="parsed-item">From <code id="slot-sender">—</code></span>
+          <span class="parsed-item">When <code id="slot-date">—</code></span>
+          <span class="parsed-item">Hits <code id="slot-hits">—</code></span>
+        </div>
       </div>
 
-      <div id="results-wrapper" style="display: none; display: flex; flex-direction: column; gap: 1.75rem;">
-        <!-- Synthesis Card -->
-        <section class="answer-card">
-          <div class="answer-header">
-            <span class="answer-label">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-              Synthesized Summary & Citation
-            </span>
-          </div>
-          <p id="answer-text" class="answer-body"></p>
+      <div id="loader" class="loader">
+        <div class="loader-dots"><i></i><i></i><i></i></div>
+        <div>Searching…</div>
+      </div>
+
+      <div id="results-wrapper" class="results">
+        <section class="answer-block">
+          <div class="answer-kicker">Answer</div>
+          <p id="answer-text" class="answer-text"></p>
         </section>
 
-        <!-- Chat Stream Section -->
-        <section class="stream-section">
-          <div class="stream-heading">
-            <span class="stream-title">Verbatim Conversation Window</span>
-            <span class="stream-hint">Matched message highlighted with full surrounding thread context</span>
+        <section id="no-match-box" class="no-match-card" style="display: none;">
+          <span class="no-match-badge">0 Matches in Corpus</span>
+          <div class="no-match-title">Nothing like this was discussed in this chat</div>
+          <p class="no-match-desc">The search engine rejected irrelevant nearest neighbors below the confidence threshold. This topic was never mentioned across the 4,200 messages in the group chat.</p>
+          <div class="no-match-suggestions">
+            <button class="btn-suggest" onclick="setQuery('when did we decide on Manali')">Manali trip decision</button>
+            <button class="btn-suggest" onclick="setQuery('what did Priya say about the trip budget')">Priya on budget</button>
+            <button class="btn-suggest" onclick="setQuery('what is our team name for the hackathon')">AI Hackathon team</button>
+            <button class="btn-suggest" onclick="setQuery('venue for birthday boy\'s surprise')">Rohan's bday dinner</button>
           </div>
-          <div id="chat-stream" class="chat-container"></div>
+        </section>
+
+        <section class="messages-block">
+          <div class="messages-heading">Conversation</div>
+          <div id="chat-stream" class="chat-wall"></div>
         </section>
       </div>
     </div>
 
-    <!-- View 2: Evaluation Benchmark Suite -->
-    <div id="view-eval-wrapper" style="display: none;">
-      <section class="benchmark-view">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-          <div>
-            <h2 style="font-size: 1.15rem; font-weight: 600; letter-spacing: -0.01em;">40-Query Benchmark Test Suite</h2>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
-              Standardized evaluation covering Semantic, Attributed, Temporal, Compound, and Zero-Overlap queries.
-            </p>
-          </div>
-          <button class="btn-submit" onclick="loadBenchmark()" style="background: var(--bg-card); border: 1px solid var(--border-soft); color: var(--text-main);">
-            Refresh Metrics
-          </button>
+    <!-- Benchmark view -->
+    <div id="view-eval-wrapper" class="view" style="display: none;">
+      <div class="bench-header">
+        <div>
+          <h2 class="bench-title">40-query eval suite</h2>
+          <p class="bench-desc">Semantic, attributed, temporal, compound, and zero-overlap queries against a gold-standard message set.</p>
         </div>
+        <button class="btn-ghost" onclick="loadBenchmark()">Refresh</button>
+      </div>
 
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <span class="metric-title">Recall@3 (Expanded Window)</span>
-            <span id="metric-r3" class="metric-value">77.5%</span>
-            <span class="metric-sub">Gold message captured in context</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-title">Recall@5</span>
-            <span id="metric-r5" class="metric-value">80.0%</span>
-            <span class="metric-sub">Top 5 candidate pool</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-title">Zero Keyword Overlap</span>
-            <span id="metric-zero" class="metric-value">10 Queries</span>
-            <span class="metric-sub">100% precision with 0 shared terms</span>
-          </div>
-          <div class="metric-card">
-            <span class="metric-title">False Clarifications</span>
-            <span id="metric-clarify" class="metric-value">0</span>
-            <span class="metric-sub">0 interruptions on valid queries</span>
-          </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Recall @3</div>
+          <div id="metric-r3" class="metric-num">—</div>
+          <div class="metric-note">in expanded window</div>
         </div>
+        <div class="metric">
+          <div class="metric-label">Recall @5</div>
+          <div id="metric-r5" class="metric-num">—</div>
+          <div class="metric-note">top-5 pool</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Zero overlap</div>
+          <div id="metric-zero" class="metric-num">—</div>
+          <div class="metric-note">no shared keywords</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">False clarifications</div>
+          <div id="metric-clarify" class="metric-num">—</div>
+          <div class="metric-note">valid queries blocked</div>
+        </div>
+      </div>
 
-        <div class="table-wrap">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Type</th>
-                <th>Query</th>
-                <th>Gold ID</th>
-                <th>Top-1 Hit</th>
-                <th>@1</th>
-                <th>@3</th>
-                <th>@5</th>
-                <th>Zero Overlap</th>
-              </tr>
-            </thead>
-            <tbody id="benchmark-body">
-              <tr>
-                <td colspan="9" style="text-align: center; padding: 2rem; color: var(--text-dim);">Loading benchmark results...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Type</th>
+              <th>Query</th>
+              <th>Gold</th>
+              <th>Top-1</th>
+              <th>@1</th>
+              <th>@3</th>
+              <th>@5</th>
+              <th>Overlap</th>
+            </tr>
+          </thead>
+          <tbody id="benchmark-body">
+            <tr>
+              <td colspan="9" style="text-align:center;padding:2rem;color:var(--text-faint)">Loading…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </main>
 
   <script>
+    const SENDER_COLORS = [
+      '#c4a882', '#82a8c4', '#a882c4', '#82c4a8',
+      '#c48282', '#c4c482', '#82c4c4', '#c482c4'
+    ];
+
+    function senderColor(name) {
+      let h = 0;
+      for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+      return SENDER_COLORS[Math.abs(h) % SENDER_COLORS.length];
+    }
+
     function switchView(tab) {
       const searchWrapper = document.getElementById('view-search-wrapper');
       const evalWrapper = document.getElementById('view-eval-wrapper');
@@ -794,7 +797,7 @@
         btnEval.classList.remove('active');
       } else {
         searchWrapper.style.display = 'none';
-        evalWrapper.style.display = 'block';
+        evalWrapper.style.display = 'flex';
         btnSearch.classList.remove('active');
         btnEval.classList.add('active');
         loadBenchmark();
@@ -815,44 +818,75 @@
       const loader = document.getElementById('loader');
       const resultsWrapper = document.getElementById('results-wrapper');
 
-      loader.style.display = 'block';
-      resultsWrapper.style.display = 'none';
+      loader.classList.add('visible');
+      resultsWrapper.classList.remove('visible');
 
       try {
         const resp = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
         const data = await resp.json();
 
-        // Update telemetry
-        document.getElementById('slots-telemetry').style.display = 'flex';
-        document.getElementById('slot-semantic').textContent = data.parsed.semantic_query || 'None';
-        document.getElementById('slot-sender').textContent = data.parsed.sender_filter || 'None';
-        document.getElementById('slot-date').textContent = data.parsed.date_range ? `${data.parsed.date_range.start.slice(0, 10)} to ${data.parsed.date_range.end.slice(0, 10)}` : 'None';
-        document.getElementById('slot-hits').textContent = `${data.hits.length} items`;
+        const telemetry = document.getElementById('slots-telemetry');
+        telemetry.classList.add('visible');
+        document.getElementById('slot-semantic').textContent = data.parsed.semantic_query || 'any';
+        document.getElementById('slot-sender').textContent = data.parsed.sender_filter || 'anyone';
+        document.getElementById('slot-date').textContent = data.parsed.date_range
+          ? `${data.parsed.date_range.start.slice(0, 10)} → ${data.parsed.date_range.end.slice(0, 10)}`
+          : 'anytime';
+        document.getElementById('slot-hits').textContent = data.hits.length;
 
-        // Answer
+        const isMatched = data.is_matched !== false && data.hits && data.hits.length > 0;
+        const answerBlock = document.querySelector('.answer-block');
+        const answerKicker = document.querySelector('.answer-kicker');
+        const messagesBlock = document.querySelector('.messages-block');
+        const noMatchBox = document.getElementById('no-match-box');
+
+        if (!isMatched) {
+          answerBlock.classList.add('unmatched');
+          answerKicker.textContent = 'No Discussion Found';
+          messagesBlock.style.display = 'none';
+          noMatchBox.style.display = 'flex';
+        } else {
+          answerBlock.classList.remove('unmatched');
+          answerKicker.textContent = 'Answer';
+          messagesBlock.style.display = 'flex';
+          noMatchBox.style.display = 'none';
+        }
+
         document.getElementById('answer-text').textContent = data.answer;
 
-        // Render Conversation Stream
         const stream = document.getElementById('chat-stream');
         stream.innerHTML = '';
 
-        if (data.context && data.context.length > 0) {
+        if (isMatched && data.context && data.context.length > 0) {
           data.context.forEach(msg => {
             const row = document.createElement('div');
-            row.className = `message-row ${msg.is_center ? 'matched' : ''}`;
+            row.className = `msg${msg.is_center ? ' match' : ''}`;
 
             const meta = document.createElement('div');
-            meta.className = 'msg-meta';
-            meta.innerHTML = `
-              <span class="participant-tag ${msg.is_center ? 'matched-sender' : ''}">
-                ${msg.sender}
-                ${msg.is_center ? '<span class="matched-flag">EVIDENCE</span>' : ''}
-              </span>
-              <span class="msg-time-info">[${msg.message_id}] ${msg.timestamp.replace('T', ' ')}</span>
-            `;
+            meta.className = 'msg-head';
+
+            const senderEl = document.createElement('span');
+            senderEl.className = 'msg-sender';
+            senderEl.style.color = msg.is_center ? '' : senderColor(msg.sender);
+            senderEl.textContent = msg.sender;
+
+            if (msg.is_center) {
+              const badge = document.createElement('span');
+              badge.className = 'msg-badge';
+              badge.textContent = 'match';
+              senderEl.appendChild(document.createTextNode(' '));
+              senderEl.appendChild(badge);
+            }
+
+            const timeEl = document.createElement('span');
+            timeEl.className = 'msg-time';
+            timeEl.textContent = msg.timestamp.replace('T', ' ').slice(0, 16);
+
+            meta.appendChild(senderEl);
+            meta.appendChild(timeEl);
 
             const content = document.createElement('div');
-            content.className = 'msg-content';
+            content.className = 'msg-body';
             content.textContent = msg.text;
 
             row.appendChild(meta);
@@ -861,11 +895,11 @@
           });
         }
 
-        resultsWrapper.style.display = 'flex';
+        resultsWrapper.classList.add('visible');
       } catch (err) {
         console.error(err);
       } finally {
-        loader.style.display = 'none';
+        loader.classList.remove('visible');
       }
     }
 
@@ -879,23 +913,23 @@
         const m = data.metrics;
         document.getElementById('metric-r3').textContent = `${m.recall_at_3_pct.toFixed(1)}%`;
         document.getElementById('metric-r5').textContent = `${m.recall_at_5_pct.toFixed(1)}%`;
-        document.getElementById('metric-zero').textContent = `${m.zero_overlap_count} Queries`;
-        document.getElementById('metric-clarify').textContent = `${m.clarification_triggers}`;
+        document.getElementById('metric-zero').textContent = m.zero_overlap_count;
+        document.getElementById('metric-clarify').textContent = m.clarification_triggers;
 
         data.queries.forEach(r => {
           const tr = document.createElement('tr');
-          const hitTop1 = r.retrieved_top1 || '-';
-          const r1 = r.recall_at_1 ? '<span class="tag-success">✓</span>' : '<span class="tag-muted">—</span>';
-          const r3 = (r.recall_at_3 || r.in_expanded_window) ? '<span class="tag-success">✓</span>' : '<span class="tag-muted">—</span>';
-          const r5 = (r.recall_at_5 || r.in_expanded_window) ? '<span class="tag-success">✓</span>' : '<span class="tag-muted">—</span>';
-          const zo = r.no_keyword_overlap ? '<span class="tag-success">Zero Overlap</span>' : '<span class="tag-muted">Standard</span>';
+          const hitTop1 = r.retrieved_top1 || '—';
+          const r1 = r.recall_at_1 ? '<span class="mark-yes">✓</span>' : '<span class="mark-no">—</span>';
+          const r3 = (r.recall_at_3 || r.in_expanded_window) ? '<span class="mark-yes">✓</span>' : '<span class="mark-no">—</span>';
+          const r5 = (r.recall_at_5 || r.in_expanded_window) ? '<span class="mark-yes">✓</span>' : '<span class="mark-no">—</span>';
+          const zo = r.no_keyword_overlap ? '<span class="tag-zo">zero</span>' : '<span class="mark-no">—</span>';
 
           tr.innerHTML = `
-            <td><span class="tag-badge">${r.id}</span></td>
-            <td style="text-transform: capitalize;">${r.type}</td>
-            <td style="color: var(--text-main); font-weight: 500;">${r.query}</td>
-            <td><span class="tag-badge" style="color: #60A5FA;">${r.gold_message_id}</span></td>
-            <td><span class="tag-badge">${hitTop1}</span></td>
+            <td class="cell-id">${r.id}</td>
+            <td style="text-transform:capitalize">${r.type}</td>
+            <td class="cell-query">${r.query}</td>
+            <td class="cell-id">${r.gold_message_id}</td>
+            <td class="cell-hit">${hitTop1}</td>
             <td>${r1}</td>
             <td>${r3}</td>
             <td>${r5}</td>
@@ -908,7 +942,6 @@
       }
     }
 
-    // Initial search load on default sample
     window.addEventListener('DOMContentLoaded', () => {
       setQuery('what did rahul say about the trip budget');
     });

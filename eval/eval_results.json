@@ -3,10 +3,11 @@
     "total_queries": 40,
     "zero_overlap_count": 10,
     "clarification_triggers": 0,
-    "recall_at_1_pct": 17.5,
+    "recall_at_1_pct": 20.0,
     "recall_at_3_pct": 77.5,
     "recall_at_5_pct": 80.0,
-    "mrr": 0.31625000000000003
+    "mrr": 0.34125,
+    "negative_rejection_pct": 100.0
   },
   "queries": [
     {
@@ -15,13 +16,13 @@
       "query": "when did we decide on Manali",
       "gold_message_id": "m0952",
       "gold_text": "chalo Manali fix hai bhai",
-      "retrieved_top1": "m0945",
+      "retrieved_top1": "m0946",
       "retrieved_top5": [
-        "m0945",
         "m0946",
-        "m0944",
+        "m0945",
+        "m0942",
         "m0947",
-        "m0942"
+        "m0944"
       ],
       "recall_at_1": false,
       "recall_at_3": false,
@@ -35,12 +36,12 @@
       "query": "where did we agree to travel",
       "gold_message_id": "m0952",
       "gold_text": "chalo Manali fix hai bhai",
-      "retrieved_top1": "m0945",
+      "retrieved_top1": "m0949",
       "retrieved_top5": [
-        "m0945",
         "m0949",
+        "m0945",
         "m0950",
-        "m0946",
+        "m0948",
         "m1141"
       ],
       "recall_at_1": false,
@@ -55,17 +56,17 @@
       "query": "when did we decide on the trip destination",
       "gold_message_id": "m0952",
       "gold_text": "chalo Manali fix hai bhai",
-      "retrieved_top1": "m0946",
+      "retrieved_top1": "m0942",
       "retrieved_top5": [
-        "m0946",
         "m0942",
-        "m0945",
-        "m0947",
-        "m0944"
+        "m0949",
+        "m0952",
+        "m0946",
+        "m0950"
       ],
       "recall_at_1": false,
-      "recall_at_3": false,
-      "recall_at_5": false,
+      "recall_at_3": true,
+      "recall_at_5": true,
       "in_expanded_window": true,
       "no_keyword_overlap": true
     },
@@ -95,13 +96,13 @@
       "query": "what total expenditure was confirmed for Old Manali",
       "gold_message_id": "m1150",
       "gold_text": "8000 each chalega sabko, Neha check kar lena",
-      "retrieved_top1": "m0950",
+      "retrieved_top1": "m0948",
       "retrieved_top5": [
-        "m0950",
-        "m0949",
-        "m0946",
-        "m0947",
-        "m0945"
+        "m0948",
+        "m0939",
+        "m0954",
+        "m0936",
+        "m0935"
       ],
       "recall_at_1": false,
       "recall_at_3": false,
@@ -115,15 +116,15 @@
       "query": "when did we finalize travel dates for the getaway",
       "gold_message_id": "m1445",
       "gold_text": "ok booking kar raha hu 15 se",
-      "retrieved_top1": "m0950",
+      "retrieved_top1": "m1445",
       "retrieved_top5": [
+        "m1445",
+        "m1444",
         "m0950",
         "m0952",
-        "m1445",
-        "m0951",
-        "m1444"
+        "m1443"
       ],
-      "recall_at_1": false,
+      "recall_at_1": true,
       "recall_at_3": true,
       "recall_at_5": true,
       "in_expanded_window": true,
@@ -180,8 +181,8 @@
         "m1442",
         "m1448",
         "m1433",
-        "m3860",
-        "m3764"
+        "m3764",
+        "m3860"
       ],
       "recall_at_1": true,
       "recall_at_3": true,
